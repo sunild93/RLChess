@@ -4,25 +4,6 @@ type Board
    piecesBlack::Dict{String,(Int64,Int64)} 
 end
 
-# Returns an array of all possible moves per piece for specified player 1 (white) or 2(black)
-function moves(board::Board, player::Int64)
-    # Assume K+R vs K position for now
-    playerPieces = Dict{String,(Int64,Int64)}
-    enemyPieces = Dict{String,(Int64,Int64)}
-
-    moves = Array{(String,(Int64,Int64))}
-    
-    if(player == 1)
-        currPieces = board.piecesWhite
-        enemyPieces = board.piecesWhite
-    else
-        currPieces = board.piecesBlack
-        enemyPieces = board.piecesBlack
-    end
-    
-    return currPieces
-end
-
 # king movement
 function kingMoves(pos)
     newPositions = (Int64,Int64)[]
@@ -134,4 +115,66 @@ function moves(board::Board, player::Int64)
     end
    
     return possibleMoves
+end
+
+
+function randSquare()
+    return (rand(1:8),rand(1:8))
+end
+
+function validPos(board::Board)
+    whitePieces = board.piecesWhite
+    blackPieces = board.piecesBlack
+    
+    totalPieces = [whitePieces,blackPieces]
+    if(length(unique(totalPieces)) != length(totalPieces))
+        return false
+    end
+    if(length(moves(board,2)) == 0)  # king cannot move
+        return false
+    end
+    
+    whiteMoves = moves(board,1)
+    for m in whiteMoves
+        if(m[2] == blackPieces["King"])
+            return false
+        end
+    end
+    return true
+end
+
+function blackInCheck(board::Board)
+    whitePieces = board.piecesWhite
+    blackPieces = board.piecesBlack
+    whiteMoves = moves(board,1)
+    for m in whiteMoves
+        if m[2] == blackPieces["King"]
+            return true
+        end
+    end
+    return false
+end
+
+function randomState()
+    board = Board(["King"=>randSquare(),"Rook"=>randSquare()],["King"=>randSquare()])
+    while(!validPos(board))
+        board = Board(["King"=>randSquare(),"Rook"=>randSquare()],["King"=>randSquare()])
+    end
+    return board
+end
+
+# This assumes that the move has already been deemed valid so has no error checking
+function makeMove!(board::Board, move::(String,(Int64,Int64)), player::Int64)
+    piece = move[1]
+    loc = move[2]
+    if(player == 1) # white
+        board.piecesWhite[piece] = loc
+    else  # black
+        board.piecesBlack[piece] = loc
+        for (p,l) in board.piecesWhite
+            if(l == loc)  # captured a piece
+                delete!(board.piecesWhite,p)
+            end
+        end
+    end
 end
