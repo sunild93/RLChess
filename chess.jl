@@ -118,15 +118,12 @@ function moves(board::Board, player::Int64)
 end
 
 
-function randSquare()
-    return (rand(1:8),rand(1:8))
-end
 
 function validPos(board::Board)
     whitePieces = board.piecesWhite
     blackPieces = board.piecesBlack
-    
-    totalPieces = [whitePieces,blackPieces]
+    totalPieces = [whitePieces["King"],whitePieces["Rook"],blackPieces["King"]]
+
     if(length(unique(totalPieces)) != length(totalPieces))
         return false
     end
@@ -155,11 +152,17 @@ function blackInCheck(board::Board)
     return false
 end
 
+function randSquare()
+    return (rand(1:8),rand(1:8))
+end
+
 function randomState()
     board = Board(["King"=>randSquare(),"Rook"=>randSquare()],["King"=>randSquare()])
+
     while(!validPos(board))
         board = Board(["King"=>randSquare(),"Rook"=>randSquare()],["King"=>randSquare()])
     end
+
     return board
 end
 
